@@ -1,112 +1,88 @@
-import { Character, Gender, Vote } from '../types';
-import { INITIAL_FEMALE_CHARACTERS, INITIAL_MALE_CHARACTERS, getImageUrl } from '../constants';
+import { Character, Gender } from '../types';
+import { supabase } from './supabase';
 
-const K_FACTOR = 32;
+// Map DB row to Frontend Type
+const mapChar = (row: any): Character => ({
+  id: row.id,
+  name: row.name,
+  series: row.series,
+  gender: row.gender,
+  elo: row.elo_rating,
+  imageUrl: row.image_url,
+  wins: row.wins || 0,
+  losses: row.losses || 0,
+});
 
-// --- Mock Database Helper ---
-const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
-  const stored = localStorage.getItem(key);
-  return stored ? JSON.parse(stored) : defaultValue;
-};
-
-const saveToStorage = <T,>(key: string, value: T) => {
-  localStorage.setItem(key, JSON.stringify(value));
-};
-
-// --- Elo Logic ---
-const getExpectedScore = (ratingA: number, ratingB: number): number => {
-  return 1 / (1 + Math.pow(10, (ratingB - ratingA) / 400));
-};
-
-export const calculateEloChange = (winnerElo: number, loserElo: number) => {
-  const expectedWinner = getExpectedScore(winnerElo, loserElo);
-  const expectedLoser = getExpectedScore(loserElo, winnerElo);
-
-  const newWinnerElo = Math.round(winnerElo + K_FACTOR * (1 - expectedWinner));
-  const newLoserElo = Math.round(loserElo + K_FACTOR * (0 - expectedLoser));
-
-  return {
-    winnerNewElo: newWinnerElo,
-    loserNewElo: newLoserElo,
-    winnerDelta: newWinnerElo - winnerElo,
-    loserDelta: newLoserElo - loserElo,
-  };
-};
-
-// --- Service Methods ---
-
-export const getCharacters = (gender?: Gender): Character[] => {
-  const allChars = loadFromStorage<Character[]>('animemash_characters', [
-    ...INITIAL_FEMALE_CHARACTERS,
-    ...INITIAL_MALE_CHARACTERS,
-  ]);
-
-  // Ensure image URLs are up to date with the new local file strategy
-  // This fixes the issue where old picsum URLs might be cached in localStorage
-  const updatedChars = allChars.map(c => ({
-    ...c,
-    imageUrl: getImageUrl(c.name)
-  }));
+export const getCharacters = async (gender?: Gender): Promise<Character[]> => {
+  let query = supabase.from('characters').select('*');
 
   if (gender) {
-    return updatedChars.filter(c => c.gender === gender);
-  }
-  return updatedChars;
-};
-
-export const resetData = () => {
-  localStorage.removeItem('animemash_characters');
-  localStorage.removeItem('animemash_votes');
-  window.location.reload();
-}
-
-export const submitVote = (winnerId: string, loserId: string): Vote => {
-  const characters = getCharacters();
-  const winnerIndex = characters.findIndex(c => c.id === winnerId);
-  const loserIndex = characters.findIndex(c => c.id === loserId);
-
-  if (winnerIndex === -1 || loserIndex === -1) {
-    throw new Error('Character not found');
+    query = query.eq('gender', gender);
   }
 
-  const winner = characters[winnerIndex];
-  const loser = characters[loserIndex];
+  const { data, error } = await query;
 
-  // Calculate new Elo
-  const result = calculateEloChange(winner.elo, loser.elo);
+  if (error) {
+    console.error('Error fetching characters:', error);
+    throw error;
+  }
 
-  // Update characters
-  characters[winnerIndex] = {
-    ...winner,
-    elo: result.winnerNewElo,
-    wins: winner.wins + 1,
-  };
-  characters[loserIndex] = {
-    ...loser,
-    elo: result.loserNewElo,
-    losses: loser.losses + 1,
-  };
-
-  // Save Characters
-  saveToStorage('animemash_characters', characters);
-
-  // Save Vote
-  const vote: Vote = {
-    id: crypto.randomUUID(),
-    winnerId,
-    loserId,
-    timestamp: Date.now(),
-  };
-
-  const votes = loadFromStorage<Vote[]>('animemash_votes', []);
-  votes.push(vote);
-  saveToStorage('animemash_votes', votes);
-
-  return vote;
+  return (data || []).map(mapChar);
 };
 
-export const getRandomPair = (gender: Gender, currentWinnerId?: string): [Character, Character] => {
-  const pool = getCharacters(gender);
+export const submitVote = async (winnerId: string, loserId: string, userId: string): Promise<void> => {
+  // Strict Server-Side Elo: We ONLY insert the vote. 
+  // The Postgres trigger 'on_vote_insert' handles Elo calc and updating characters.
+
+  const { error } = await supabase.from('votes').insert({
+    winner_id: winnerId,
+    loser_id: loserId,
+    user_id: userId
+  });
+
+  if (error) {
+    console.error('Error submitting vote:', error);
+    throw error;
+  }
+};
+
+const VOTE_LIMIT = 50; // Set to 50 for MVP
+const VOTE_WINDOW_HOURS = 5; // Set to 5 hours for MVP
+
+export const checkVoteLimit = async (userId: string): Promise<{ allowed: boolean; waitTimeMs?: number }> => {
+  // Get timestamp for X hours ago
+  const windowStart = new Date();
+  windowStart.setHours(windowStart.getHours() - VOTE_WINDOW_HOURS);
+
+  const { count, error } = await supabase
+    .from('votes')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('created_at', windowStart.toISOString());
+
+  if (error) {
+    console.error('Error checking vote limit', error);
+    return { allowed: true }; // Fail open
+  }
+
+  if (count !== null && count >= VOTE_LIMIT) {
+    // For simplicity in MVP, we just say "come back in 5 hours" or a generic time.
+    // To be precise we'd need the oldest vote in the window, but let's just block for now.
+    // A simple UX is to just tell them to wait.
+    // Let's return a fixed wait time for the UI to display or calculating based on the window.
+    // Effectively, if they hit the limit, they are blocked until the oldest vote falls out of the window.
+    // That is hard to calc without fetching data.
+    // Let's just return allowed: false.
+    return { allowed: false, waitTimeMs: VOTE_WINDOW_HOURS * 60 * 60 * 1000 };
+  }
+
+  return { allowed: true };
+};
+
+export const getRandomPair = async (gender: Gender, currentWinnerId?: string): Promise<[Character, Character]> => {
+  // For MVP with < 50 characters, fetching all is fine.
+  // Ideally, use a Postgres function `get_random_pair` for scale.
+  const pool = await getCharacters(gender);
 
   if (pool.length < 2) throw new Error("Not enough characters");
 
@@ -122,10 +98,25 @@ export const getRandomPair = (gender: Gender, currentWinnerId?: string): [Charac
   }
 
   // Find a second character that is not the first one
+  let attempts = 0;
   do {
     char2 = pool[Math.floor(Math.random() * pool.length)];
+    attempts++;
+    if (attempts > 50) break; // Safety break
   } while (char2.id === char1.id);
 
-  // Randomize order for display so winner isn't always on left if they stay
+  // Fallback if we somehow failed to find a pair
+  if (char1.id === char2.id) {
+    return [pool[0], pool[1]];
+  }
+
+  // Randomize order for display
   return Math.random() > 0.5 ? [char1, char2] : [char2, char1];
+};
+
+// Reset is now just a "Clear Votes" which requires admin privs usually, 
+// or simply reloading the page to clear local state. 
+// For this MVP, we remove the local storage reset.
+export const resetData = () => {
+  window.location.reload();
 };
