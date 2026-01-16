@@ -17,8 +17,8 @@ const RankingsTable: React.FC<RankingsTableProps> = ({ characters }) => {
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-16">Rank</th>
-              <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Character</th>
-              <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Series</th>
+              <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
+              <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Group</th>
               <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Rating</th>
             </tr>
           </thead>
@@ -56,9 +56,6 @@ const RankingsTable: React.FC<RankingsTableProps> = ({ characters }) => {
                   <td className="py-3 px-6 text-right">
                     <div className="flex items-center justify-end space-x-2">
                       <span className="font-mono font-medium text-blue-600">{char.elo}</span>
-                      {winRate > 50 && <ArrowUp size={14} className="text-green-500" />}
-                      {winRate < 50 && winRate > 0 && <ArrowDown size={14} className="text-red-500" />}
-                      {(winRate === 50 || winRate === 0) && <Minus size={14} className="text-gray-300" />}
                     </div>
                   </td>
                 </tr>

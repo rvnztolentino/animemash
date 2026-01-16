@@ -9,15 +9,15 @@ interface FooterProps {
 
 const Footer: React.FC<FooterProps> = ({ currentCategory, onSelectCategory, onNavigate }) => {
   return (
-    <footer className="bg-blue-900 text-white mt-auto">
+    <footer className="bg-gray-900 text-white mt-auto">
       {/* Category Selection Bar */}
       <div className="container mx-auto">
         <div className="flex w-full text-center">
           <button
             onClick={() => onSelectCategory('female')}
             className={`flex-1 py-4 font-bold text-lg tracking-wider transition-colors duration-200 ${currentCategory === 'female'
-                ? 'bg-blue-800 text-white border-b-4 border-white'
-                : 'bg-blue-900 text-blue-300 hover:bg-blue-800 hover:text-white'
+              ? 'bg-gray-800 text-white border-b-4 border-white'
+              : 'bg-gray-900 text-gray-300 hover:bg-gray-800 hover:text-white'
               }`}
           >
             FEMALE
@@ -25,8 +25,8 @@ const Footer: React.FC<FooterProps> = ({ currentCategory, onSelectCategory, onNa
           <button
             onClick={() => onSelectCategory('male')}
             className={`flex-1 py-4 font-bold text-lg tracking-wider transition-colors duration-200 ${currentCategory === 'male'
-                ? 'bg-blue-800 text-white border-b-4 border-white'
-                : 'bg-blue-900 text-blue-300 hover:bg-blue-800 hover:text-white'
+              ? 'bg-gray-800 text-white border-b-4 border-white'
+              : 'bg-gray-900 text-gray-300 hover:bg-gray-800 hover:text-white'
               }`}
           >
             MALE
@@ -44,8 +44,8 @@ const Footer: React.FC<FooterProps> = ({ currentCategory, onSelectCategory, onNa
           </p>
 
           <div className="pt-4 flex justify-center space-x-6 text-sm font-medium">
-            <button onClick={() => onNavigate('vote')} className="text-blue-400 hover:text-blue-300">Submit Rankings</button>
-            <button onClick={() => onNavigate('rankings')} className="text-blue-400 hover:text-blue-300">View Leaderboard</button>
+            <button onClick={() => onNavigate('vote')} className="text-gray-400 hover:text-gray-300">Submit Rankings</button>
+            <button onClick={() => onNavigate('rankings')} className="text-gray-400 hover:text-gray-300">View Leaderboard</button>
           </div>
 
           <p className="text-xs text-gray-600 pt-6">

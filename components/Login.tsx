@@ -9,12 +9,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 animate-in fade-in zoom-in duration-500">
             <div className="bg-white/80 backdrop-blur-sm p-8 md:p-12 rounded-3xl shadow-2xl max-w-md w-full border border-white/20 ring-1 ring-gray-100">
-                <div className="w-20 h-20 bg-gradient-to-tr from-red-500 to-pink-500 text-white rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg transform rotate-3 hover:rotate-6 transition-transform">
+                <div className="w-20 h-20 bg-gradient-to-tr from-gray-500 to-pink-500 text-white rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg transform rotate-3 hover:rotate-6 transition-transform">
                     <Lock size={36} strokeWidth={2.5} />
                 </div>
 
                 <h2 className="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">
-                    Welcome to Kpopmash
+                    Welcome to kpopmash
                 </h2>
 
                 <p className="text-gray-500 mb-10 text-lg leading-relaxed">

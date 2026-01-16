@@ -205,7 +205,7 @@ const App: React.FC = () => {
       return (
         <div className="flex flex-col items-center animate-in fade-in duration-500">
           <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-8 text-center">
-            Who is better?
+            Who's hotter? Click to choose.
           </h2>
 
           <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 w-full max-w-4xl px-4">
@@ -231,7 +231,7 @@ const App: React.FC = () => {
           </div>
 
           <div className="mt-12 text-center text-sm text-gray-400">
-            Click on the character to cast your vote.
+            Select a k-pop idol to make your choice.
           </div>
         </div>
       );
@@ -263,11 +263,11 @@ const App: React.FC = () => {
       return (
         <div className="max-w-2xl mx-auto px-4 py-12 animate-in fade-in duration-500">
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 border-b pb-4">About Kpopmash</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6 border-b pb-4">About kpopmash</h2>
 
             <div className="prose prose-red text-gray-600">
               <p className="mb-4">
-                Kpopmash is a crowd-sourced ranking platform inspired by the classic Facemash concept, but for K-pop idols.
+                kpopmash is a crowd-sourced ranking platform inspired by the classic facemash concept, but for K-pop idols.
               </p>
               <p className="mb-4">
                 We use the <strong>Elo rating system</strong>—the same system used to rank chess players—to ensure a fair and dynamic leaderboard.
@@ -283,10 +283,8 @@ const App: React.FC = () => {
             </div>
 
             <div className="mt-10 pt-6 border-t border-gray-100 flex justify-between items-center">
+              <span className="text-sm text-gray-400">Created by @rvnztolentino</span>
               <span className="text-sm text-gray-400">Version 1.0.0 (Demo)</span>
-              <button onClick={handleReset} className="text-xs text-red-400 hover:text-red-600 underline">
-                Reload App
-              </button>
             </div>
           </div>
         </div>

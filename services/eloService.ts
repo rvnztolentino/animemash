@@ -46,8 +46,8 @@ export const submitVote = async (winnerId: string, loserId: string, userId: stri
   }
 };
 
-const VOTE_LIMIT = 50; // Set to 50 for MVP
-const VOTE_WINDOW_HOURS = 5; // Set to 5 hours for MVP
+const VOTE_LIMIT = 25; // Limit of votes per user per window
+const VOTE_WINDOW_HOURS = 12; // Time window for voting
 
 export const checkVoteLimit = async (userId: string): Promise<{ allowed: boolean; waitTimeMs?: number }> => {
   // Get timestamp for X hours ago
